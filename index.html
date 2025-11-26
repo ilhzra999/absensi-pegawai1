@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Absensi Pegawai</title>
+</head>
+<body>
+    <h2>Absensi Pegawai</h2>
+
+    <label>Nama:</label><br>
+    <input id="nama" type="text" placeholder="Masukkan nama"><br><br>
+
+    <label>Jabatan:</label><br>
+    <select id="jabatan">
+        <option>Cost Controller</option>
+        <option>Drilling Engineer</option>
+        <option>Engineer Assistant</option>
+    </select><br><br>
+
+    <button onclick="ambilLokasi()">Cek Lokasi</button><br><br>
+
+    <button onclick="checkIn()">Check-in</button>
+
+    <p id="status"></p>
+
+<script>
+function ambilLokasi() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            window.lat = pos.coords.latitude;
+            window.lng = pos.coords.longitude;
+            document.getElementById("status").innerHTML =
+                "Lokasi aktif ✔️<br>Lat: " + window.lat + "<br>Lng: " + window.lng;
+        }, function() {
+            document.getElementById("status").innerHTML =
+                "Aktifkan GPS untuk melanjutkan!";
+        });
+    }
+}
+
+function checkIn() {
+    if (!window.lat) {
+        alert("Harap klik 'Cek Lokasi' dulu!");
+        return;
+    }
+
+    let nama = document.getElementById("nama").value;
+    let jabatan = document.getElementById("jabatan").value;
+
+    document.getElementById("status").innerHTML =
+        "Check-in berhasil!<br>" +
+        "Nama: " + nama + "<br>" +
+        "Jabatan: " + jabatan + "<br>" +
+        "Lokasi: " + window.lat + ", " + window.lng + "<br>" +
+        "Waktu: " + new Date().toLocaleString();
+}
+</script>
+
+</body>
+</html>

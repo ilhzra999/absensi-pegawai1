@@ -3,58 +3,95 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Absensi Pegawai</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        #status {
+            margin-top: 20px;
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
+
     <h2>Absensi Pegawai</h2>
 
-    <label>Nama:</label><br>
-    <input id="nama" type="text" placeholder="Masukkan nama"><br><br>
+    <label>Nama:</label>
+    <input id="nama" type="text" placeholder="Masukkan nama">
 
-    <label>Jabatan:</label><br>
+    <label>Jabatan:</label>
     <select id="jabatan">
         <option>Cost Controller</option>
         <option>Drilling Engineer</option>
         <option>Engineer Assistant</option>
-    </select><br><br>
+    </select>
 
-    <button onclick="ambilLokasi()">Cek Lokasi</button><br><br>
-
+    <button onclick="ambilLokasi()">Cek Lokasi</button>
     <button onclick="checkIn()">Check-in</button>
 
-    <p id="status"></p>
+    <div id="status"></div>
 
 <script>
-function ambilLokasi() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(pos) {
-            window.lat = pos.coords.latitude;
-            window.lng = pos.coords.longitude;
-            document.getElementById("status").innerHTML =
-                "Lokasi aktif ✔️<br>Lat: " + window.lat + "<br>Lng: " + window.lng;
-        }, function() {
-            document.getElementById("status").innerHTML =
-                "Aktifkan GPS untuk melanjutkan!";
-        });
+async function ambilLokasi() {
+    if (!navigator.geolocation) {
+        document.getElementById("status").innerHTML = "Browser tidak mendukung GPS";
+        return;
     }
+
+    document.getElementById("status").innerHTML = "Mengambil lokasi...";
+
+    navigator.geolocation.getCurrentPosition(async function(pos) {
+
+        window.lat = pos.coords.latitude;
+        window.lng = pos.coords.longitude;
+
+        // Reverse geocoding - ambil alamat lengkap
+        let url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${window.lat}&lon=${window.lng}`;
+
+        try {
+            let response = await fetch(url, {
+                headers: {
+                    "User-Agent": "Mozilla/5.0"
+                }
+            });
+            let data = await response.json();
+
+            window.alamat = data.display_name;
+
+            document.getElementById("status").innerHTML =
+                "Lokasi aktif ✔️<br><br>" +
+                "<b>Alamat:</b> " + window.alamat;
+
+        } catch (e) {
+            document.getElementById("status").innerHTML =
+                "Tidak dapat mengambil nama lokasi.<br>Koordinat: " +
+                window.lat + ", " + window.lng;
+        }
+
+    }, function() {
+        document.getElementById("status").innerHTML = "Aktifkan GPS untuk melanjutkan!";
+    });
 }
 
 function checkIn() {
     if (!window.lat) {
-        alert("Harap klik 'Cek Lokasi' dulu!");
+        alert("Klik 'Cek Lokasi' dulu!");
         return;
     }
 
     let nama = document.getElementById("nama").value;
     let jabatan = document.getElementById("jabatan").value;
 
-    document.getElementById("status").innerHTML =
-        "Check-in berhasil!<br>" +
-        "Nama: " + nama + "<br>" +
-        "Jabatan: " + jabatan + "<br>" +
-        "Lokasi: " + window.lat + ", " + window.lng + "<br>" +
-        "Waktu: " + new Date().toLocaleString();
-}
-</script>
+    let waktu = new Date().toLocaleString();
 
-</body>
-</html>
+    document.getElementById("status").innerHTML =
